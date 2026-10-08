@@ -1,0 +1,68 @@
+---
+type: guideline
+title: 'テーブル駆動テストの設計指針'
+description: 'Go でテストケースを表として並べて網羅的に検証するテスト設計。'
+tags: [knowledge, testing, vitest, go, clean-code, tdd]
+status: stable
+verified: { by: claude-code/claude-sonnet-5-5, at: 2026-10-01T00:00:00Z }
+stale_after: 2027-10-01T00:00:00Z
+---
+
+# テーブル駆動テストの設計指針
+
+テストケースを配列化して 1 つの検証ロジックで回すテーブル駆動テストの使い方と、使うべきでない場面の指針。ケース追加・原因特定・仕様把握のコストを下げ、テストの保守性と可読性を保つために守る。
+
+## 1. テーブル駆動テストとは
+
+テストケースをオブジェクト配列として定義し、1 つの検証ロジックを再利用してループ実行するテスト手法。Go 言語の標準イディオムでもある。
+
+```typescript
+const cases = [
+  { input: 1500, expected: '25:00', label: '25分 (1500秒)' },
+  { input: 65, expected: '01:05', label: '1分5秒 (65秒)' },
+];
+
+it.each(cases)('$label の場合は "$expected" を返す', ({ input, expected }) => {
+  expect(formatTime(input)).toBe(expected);
+});
+```
+
+## 2. メリット
+
+1. テストケースの追加・仕様変更が容易:
+   - ロジックに触れず、配列にオブジェクトを 1 行追加・修正するだけでテストが完了する。
+1. デバッグ・原因特定が迅速:
+   - 失敗時にどのグループのどの値で落ちたかがピンポイントでレポートされる。
+1. 仕様書としての価値:
+   - `describe` で関心ごとを分割することで、テストコードを読むだけで関数の全仕様が把握できる。
+
+## 3. テーブル駆動テストの使い所と限界（DAMP vs DRY）
+
+テストコードでは、過剰な重複排除（DRY）よりも 「上から下に素直に読めること（DAMP: Descriptive And Meaningful Phrases）」 を優先する。
+
+| 対象の性質                 | 推奨スタイル               | 理由                                                                                                                                                                                      |
+| :------------------------- | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 計算・変換・バリデーション | テーブル駆動テスト         | 入力値と期待値のペアを並べるだけで、境界値パターンを網羅できる。                                                                                                                          |
+| 通信・副作用・異なる検証   | 個別のテストケース（`it`） | 正常系（戻り値検証）と異常系（例外スロー検証）のように事前準備やアサーションが根本的に異なる場合、無理に 1 つの配列にまとめると `setup` や `check` コールバックが乱立して可読性が落ちる。 |
+
+## 4. 保守性を高める 3 原則
+
+1. 実装詳細ではなく「公開 API の契約（振る舞い）」をテストする:
+   - 内部のプライベート変数や生 SQL の中身を覗き見せず、引数に対して何が返るか（または例外が出るか）という公開契約だけを検証する。内部をリファクタリングしてもテストが壊れないセーフティネットとなる。
+1. 生きた仕様書（Executable Specification）にする:
+   - テスト名（`it('...')` や Go の `tt.name`）に日本語で振る舞いの仕様を明記し、テスト一覧を見るだけで機能仕様が理解できるようにする。
+1. テストの独立性と決定論（Deterministic）:
+   - 実行順序に依存せず、常に同じ結果になるようモックは固定値を使用し、実行後の後片付け（`t.Cleanup` や `afterEach`）を徹底する。
+
+## Rationale（決定理由）
+
+- 配列に 1 行足すだけでケースを追加でき、失敗時にどの値で落ちたかが分かるため、計算・変換・バリデーションにはテーブル駆動を採る。
+- 事前準備やアサーションが異なるテストを 1 配列に詰めると `setup` や `check` が乱立して読みにくくなるため、その場合は個別の `it` を使う。
+
+## See also
+
+- [`docs/knowledge/aaa-pattern.md`](/knowledge/aaa-pattern.md)
+- [`frontend/features/pomodoro/utils/time.test.ts`](../../frontend/features/pomodoro/utils/time.test.ts)
+- [`frontend/features/pomodoro/api/create-pomodoro.test.ts`](../../frontend/features/pomodoro/api/create-pomodoro.test.ts)
+- [`backend/internal/pomodoro/usecase_test.go`](../../backend/internal/pomodoro/usecase_test.go)
+- [`docs/knowledge/bracket-and-character-rules.md`](/knowledge/bracket-and-character-rules.md)
