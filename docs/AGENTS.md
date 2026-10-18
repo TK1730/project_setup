@@ -4,8 +4,8 @@ title: 'docs ディレクトリ運用規約（エージェント向け指示）'
 description: 'AI エージェントが docs を探索・作成・更新するときの行動指針。'
 tags: [docs, agents, okf]
 status: stable
-verified: { by: claude-code/claude-opus-5-5, at: 2026-10-08T00:00:00Z }
-stale_after: 2027-10-08T00:00:00Z
+verified: { by: claude-code/claude-opus-5-5, at: 2026-10-18T00:00:00Z }
+stale_after: 2027-10-18T00:00:00Z
 ---
 
 # docs ディレクトリ運用規約（エージェント向け指示）
@@ -37,9 +37,11 @@ stale_after: 2027-10-08T00:00:00Z
 | README の書き方                    | [README の書き方](/guides/readme.md)                                 |
 | 判断に迷ったときの考え方           | [ドキュメントの考え方](/guides/philosophy.md)                        |
 
+機能を説明する文書は、1 つの機能に 1 つの文書にする。機能の区切りは、コードの機能パッケージに合わせる（例: `internal/pomodoro/record/` と `internal/pomodoro/settings/` は別の文書）。機能の文書は `docs/<領域>/features/<機能名>.md` に置き、機能が大きく操作ごとに分けるときは `docs/<領域>/features/<機能名>/` に置く。領域全体に共通する構成と決まりだけを `docs/<領域>/architecture.md` に書く。1 つの文書に複数の機能が混ざっていると、読む人がどの話がどの機能のものか分からなくなるためである。
+
 ## 3. 禁止事項
 
-- 1つのドキュメントに無関係な関心事を混在させること（関心の分離違反）。
+- 1つのドキュメントに無関係な関心事を混在させること（関心の分離違反）。機能の文書の分け方は §2 に従う。
 - `knowledge/` と `references/` にプロジェクト固有の内容を書くこと、およびそこからプロジェクト固有の文書やソースコードへリンクすること（依存の向きの違反）。
 - 目次（各ディレクトリの `index.md`）から辿れない孤立ファイル（孤島ドキュメント）を作ること。
 - 使われなくなった古い記述を放置すること（不要になった情報は削除または `status: deprecated` にする）。

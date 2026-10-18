@@ -4,8 +4,8 @@ title: 'Markdown の書き方'
 description: '見出し・リスト・コード・リンク・表など Markdown 記法のルール。'
 tags: [documentation, markdown, style, google-docguide]
 status: stable
-verified: { by: claude-code/claude-opus-5-5, at: 2026-10-01T00:00:00Z }
-stale_after: 2027-10-01T00:00:00Z
+verified: { by: claude-code/claude-opus-5-5, at: 2026-10-18T00:00:00Z }
+stale_after: 2027-10-18T00:00:00Z
 ---
 
 # Markdown の書き方
@@ -46,7 +46,7 @@ Markdown の記法のルール。ソースのままでも読みやすく、ど�
 
 - リンクテキストは内容が分かる語句にする。「ここ」「link」や URL そのままは使わない。
 - 長い URL は参照リンク（`[text][id]`）に分け、定義は最初に使った節の末尾に置く。短いリンクには使わない。
-- docs 内の文書へは `/` で始まる Bundle 基点のパスでリンクする（例: `/guides/writing.md`）。`../` を使った相対パスは使わない。詳しくは [Open Knowledge Format 運用ガイド](/guides/open-knowledge-format.md) を参照する。
+- docs 内の文書へは `/` で始まる Bundle 基点のパスでリンクする（例: `/guides/writing.md`）。`../` を使った相対パスは使わない。docs の外のファイル（コードや `openapi.yaml` など）へは、GitHub 上で辿れるよう `../` を使った相対パスでリンクする。詳しくは [Open Knowledge Format 運用ガイド](/guides/open-knowledge-format.md) を参照する。
 
 ## 表
 
@@ -58,7 +58,12 @@ Markdown の記法のルール。ソースのままでも読みやすく、ど�
 
 - 標準の Markdown で書き、HTML タグは使わない。HTML は読みやすさと移植性を下げる。
 - 太字などの強調は多用しない。
+
+## 図（Mermaid）
+
 - 図は Mermaid のコードブロックで書く。
+- 状態遷移図の状態の ID は、予約語と重ならない名前にする。`default` などの予約語は、大文字・小文字を区別せずにキーワードとして読まれ、図が描けなくなる（`Default` も不可）。英語の ID に日本語の名前を表示したいときは、`state "標準値を使っている" as NoRow` のように別名を付ける。日本語の ID（`停止中` など）はそのまま使える。
+- 遷移のラベルの中の `:` は `#58;` と書く（例: `25#58;00`）。状態遷移図では `:` がラベルの始まりの印なので、ラベルの中に `:` があると図が描けなくなる。図の上では `:` と表示される。
 
 ## 画像
 

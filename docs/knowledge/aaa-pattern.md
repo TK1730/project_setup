@@ -4,13 +4,13 @@ title: 'テスト設計における AAA パターン'
 description: '単体テストを Arrange・Act・Assert の 3 段で構成する原則。'
 tags: [knowledge, testing, clean-code, aaa-pattern]
 status: stable
-verified: { by: claude-code/claude-sonnet-5-5, at: 2026-10-01T00:00:00Z }
-stale_after: 2027-10-01T00:00:00Z
+verified: { by: claude-code/claude-opus-5-5, at: 2026-10-10T00:00:00Z }
+stale_after: 2027-10-10T00:00:00Z
 ---
 
 # テスト設計における AAA パターン
 
-AAA（Arrange・Act・Assert）は、テストを「準備・実行・検証」の 3 フェーズに分けて書くパターンである。テストの可読性と構造の一貫性を保つために、本プロジェクトのテストはこの構造で書く。
+AAA（Arrange・Act・Assert）は、テストを「準備・実行・検証」の 3 フェーズに分けて書くパターンである。テストの可読性と構造の一貫性を保つために使う。
 
 ## 1. AAA パターンとは
 
@@ -26,18 +26,18 @@ AAA（Arrange・Act・Assert）は、テストを「準備・実行・検証」�
 
 ### Go による HTTP ハンドラーテストの例
 
-以下は説明用の簡略例で、現在のパッケージ構成（`handler` パッケージは `pomodoro` パッケージへ統合済み）とは異なる。実際のテストは `backend/internal/pomodoro/handler_test.go` の `TestCreatePomodoro`（テーブル駆動。各ケースの `t.Run` 内が準備・実行・検証の順になっている）を参照。
+以下は説明用の簡略例である。テーブル駆動テストでも、各ケースの `t.Run` の中を準備・実行・検証の順に書けば、同じリズムを保てる。
 
 ```go
-func TestCreatePomodoro_InvalidJSON(t *testing.T) {
+func TestCreateHoge_InvalidJSON(t *testing.T) {
 	// 1. Arrange（準備）
 	h := handler.New(nil)
 	body := strings.NewReader("invalid-json")
-	req := httptest.NewRequest(http.MethodPost, "/api/pomodoros", body)
+	req := httptest.NewRequest(http.MethodPost, "/api/hoges", body)
 	rec := httptest.NewRecorder()
 
 	// 2. Act（実行）
-	h.CreatePomodoro(rec, req)
+	h.CreateHoge(rec, req)
 
 	// 3. Assert（検証）
 	if rec.Code != http.StatusBadRequest {
@@ -58,4 +58,4 @@ func TestCreatePomodoro_InvalidJSON(t *testing.T) {
 ## See also
 
 - [テーブル駆動テスト](/knowledge/table-driven-tests.md)
-- [`backend/internal/pomodoro/handler_test.go`](../../backend/internal/pomodoro/handler_test.go)
+- [Go のテストで t.Fatalf と t.Errorf を使い分ける](/knowledge/test-fatal-vs-error.md)

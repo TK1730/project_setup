@@ -153,6 +153,7 @@ erDiagram
     users ||--o{ tasks : owns
     users ||--o{ pomodoro_records : owns
     users ||--o{ streaks : achieves
+    users ||--o| pomodoro_settings : configures
     tasks ||--o{ pomodoro_records : tracks
     tasks ||--o{ review_schedules : generates
 
@@ -175,6 +176,13 @@ erDiagram
         timestamptz started_at
         integer duration_seconds
         timestamptz created_at
+    }
+
+    pomodoro_settings {
+        varchar user_id PK "FK を兼ねる"
+        integer work_seconds "作業時間: 秒"
+        integer break_seconds "休憩時間: 秒"
+        integer total_loops "繰り返し回数"
     }
 
     streaks {

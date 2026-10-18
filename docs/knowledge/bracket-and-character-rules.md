@@ -32,4 +32,3 @@ stale_after: 2027-10-01T00:00:00Z
 ## See also
 
 - [命名パターン](/knowledge/naming-patterns.md)
-- [フロントエンド命名規則](/frontend/naming-conventions.md)

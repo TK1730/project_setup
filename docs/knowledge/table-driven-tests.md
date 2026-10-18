@@ -4,8 +4,8 @@ title: 'テーブル駆動テストの設計指針'
 description: 'Go でテストケースを表として並べて網羅的に検証するテスト設計。'
 tags: [knowledge, testing, vitest, go, clean-code, tdd]
 status: stable
-verified: { by: claude-code/claude-sonnet-5-5, at: 2026-10-01T00:00:00Z }
-stale_after: 2027-10-01T00:00:00Z
+verified: { by: claude-code/claude-opus-5-5, at: 2026-10-10T00:00:00Z }
+stale_after: 2027-10-10T00:00:00Z
 ---
 
 # テーブル駆動テストの設計指針
@@ -62,7 +62,6 @@ it.each(cases)('$label の場合は "$expected" を返す', ({ input, expected }
 ## See also
 
 - [`docs/knowledge/aaa-pattern.md`](/knowledge/aaa-pattern.md)
-- [`frontend/features/pomodoro/utils/time.test.ts`](../../frontend/features/pomodoro/utils/time.test.ts)
-- [`frontend/features/pomodoro/api/create-pomodoro.test.ts`](../../frontend/features/pomodoro/api/create-pomodoro.test.ts)
-- [`backend/internal/pomodoro/usecase_test.go`](../../backend/internal/pomodoro/usecase_test.go)
 - [`docs/knowledge/bracket-and-character-rules.md`](/knowledge/bracket-and-character-rules.md)
+- [Go のテストで t.Fatalf と t.Errorf を使い分ける](/knowledge/test-fatal-vs-error.md)
+- [Go の Repository 層のテストの設計指針](/knowledge/go-repository-testing.md)

@@ -98,8 +98,5 @@ useEffect(() => {
 
 ## See also
 
-- [`AGENTS_LEARNING.md`](../../AGENTS_LEARNING.md)
-- [`docs/knowledge/aaa-pattern.md`](/knowledge/aaa-pattern.md)
-- [`docs/knowledge/package-by-feature.md`](/knowledge/package-by-feature.md)
-- [`frontend/features/pomodoro/hooks/use-timer.ts`](../../frontend/features/pomodoro/hooks/use-timer.ts)
-- [`frontend/features/pomodoro/hooks/use-timer.test.ts`](../../frontend/features/pomodoro/hooks/use-timer.test.ts)
+- [テスト設計における AAA パターン](/knowledge/aaa-pattern.md)
+- [Package by Feature 設計指針](/knowledge/package-by-feature.md)

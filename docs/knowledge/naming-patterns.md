@@ -41,4 +41,5 @@ Y あたりの X を表す。英語の `per` を用いた単位換算の代表�
 
 ## See also
 
-- [フロントエンド命名規則](/frontend/naming-conventions.md)
+- [コードを書くときに意識すること](/knowledge/coding-mindset.md)
+- [半角・全角記号の使い分けルール](/knowledge/bracket-and-character-rules.md)
