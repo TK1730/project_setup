@@ -54,5 +54,5 @@ Google の HTML/CSS スタイルガイドを、React / Next.js 開発者向け�
 
 ## See also
 
-- [Markdown の書き方](/guides/markdown-style.md)
+- [Markdown の書き方](/knowledge/markdown-style.md)
 - [Google HTML/CSS Style Guide（原典）](https://google.github.io/styleguide/htmlcssguide.html)

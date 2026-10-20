@@ -12,3 +12,11 @@
 - [テーブル駆動テストの設計指針](table-driven-tests.md) - Go でテストケースを表として並べて網羅的に検証するテスト設計。
 - [Go のテストで t.Fatalf と t.Errorf を使い分ける](test-fatal-vs-error.md) - Go のテストで、失敗したときに後ろの確認へ進むかどうかで t.Fatalf と t.Errorf を選ぶ基準。
 - [Go の Repository 層のテストの設計指針](go-repository-testing.md) - Go で DB にアクセスする Repository 層を、本物の DB に対してテストするときの接続・データの分け方・確かめる範囲の指針。
+- [ドキュメントの考え方](documentation-philosophy.md) - 文書を書くときの判断の土台になる考え方（少なく新しく正確に、完璧より改善、飾らずソースで読める、文書はテストのように扱う）。
+- [文章の書き方](documentation-writing.md) - 文書の中の文章を、流し読みする読者に向けて書くための考え方（短く書く、意味の区切りで改行する、初めての人を想定する、名前を正しく書く、内容が分かるリンクにする）。
+- [Markdown の書き方](markdown-style.md) - ソースのまま読めて、長く保守できる Markdown を書くための記法の指針（見出し、行と空白、リスト、コード、リンク、表、画像、HTML）。
+- [ADR の書き方](architecture-decision-records.md) - 重要な設計の決定を ADR（Architecture Decision Record）として 1 つずつ残す考え方（書く理由、対象にする決定、形式、番号と置き換え）。
+- [文書の構成](document-structure.md) - 1 つの文書を組み立てる順番の指針（タイトル、短い紹介、目次、本文、See also）と、決定の理由を ADR に分けて残す考え方。
+- [README の書き方](readme-writing.md) - README.md をディレクトリの案内役として書くための考え方（役割、名前、置き場所、中身）。
+- [書く場所の選び方](where-to-document.md) - 伝えたいことを、名前、コメント、README、docs などのどこに書くかを、コードに近い順に選ぶ考え方。
+- [文書の保守](documentation-maintenance.md) - 文書をコードと同じ変更で直し、死んだ文書を消し、レビューで完璧を求めすぎないための考え方。

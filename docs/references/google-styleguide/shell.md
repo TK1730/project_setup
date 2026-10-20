@@ -70,5 +70,5 @@ Google の Shell Style Guide を、小さなスクリプトや Taskfile のコ�
 
 - [Google Shell Style Guide（原典）](https://google.github.io/styleguide/shellguide.html)
 - [ShellCheck](https://www.shellcheck.net/)
-- [Markdown の書き方](/guides/markdown-style.md)
+- [Markdown の書き方](/knowledge/markdown-style.md)
 - [docs ハブ](/index.md)

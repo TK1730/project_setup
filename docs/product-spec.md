@@ -233,4 +233,4 @@ erDiagram
 - [ポモドーロ機能 実装仕様・データフロー](/frontend/features/pomodoro.md)
 - [pomodoro_records テーブル定義](/database/pomodoro-records.md)
 - [Package by Feature 設計指針](/knowledge/package-by-feature.md)
-- [文書の構成ガイドライン](/guides/document-structure.md)
+- [文書の構成の決まり](/conventions/document-structure.md)
