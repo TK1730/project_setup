@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ファクトリーのループ早見表</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+<div class="kicker">REFERENCE · AIファクトリー</div>
+<h1>ファクトリーのループ早見表</h1>
+<p class="lede">無人ループの骨組み、ガード、セッションの手順、<code>claude -p</code> のオプション。実装は <a href="../starter/factory.sh"><code>starter/factory.sh</code></a>。</p>
+
+<h2>ループの骨組み</h2>
+<pre>for i in 1..MAX_ITER:
+    残り = passes:false の件数
+    残り == 0 なら 完了で終わる              ← 完了判定
+    ハッシュ = passes を除いた機能一覧のハッシュ
+    claude -p &lt;続きのプロンプト&gt; --max-budget-usd …   ← 予算上限（セッション内）
+    ハッシュが変わったら 停止                 ← 改竄検知
+    残りが減らない回が MAX_STALL 回続いたら 停止   ← 停滞検知
+MAX_ITER に達したら 停止                      ← 回数上限</pre>
+
+<h2>4つのガードと予算上限</h2>
+<div class="table-wrap">
+<table>
+<tr><th>ガード</th><th>見るもの</th><th>防ぐ失敗</th></tr>
+<tr><td>完了判定</td><td><code>passes: false</code> の件数</td><td>終わったのに回り続ける</td></tr>
+<tr><td>回数上限</td><td>ループの回数</td><td>終わりのない実行</td></tr>
+<tr><td>停滞検知</td><td>残り件数の変化</td><td>同じ失敗の繰り返し</td></tr>
+<tr><td>改竄検知</td><td><code>passes</code> 以外のハッシュ</td><td>テストを書き換えて合格にする</td></tr>
+<tr><td>予算上限</td><td><code>--max-budget-usd</code></td><td>1回のセッションの中での暴走</td></tr>
+</table>
+</div>
+<p class="src">ループのガードが判断できるのは、セッションが終わってからだけ。セッションの中の暴走は、<code>claude -p</code> 側の上限で止める。</p>
+
+<h2>コーディングエージェントの手順</h2>
+<ol>
+<li>状況をつかむ：<code>pwd</code>、<code>ls</code>、進捗ファイル、<code>git log</code>、残り件数</li>
+<li>既存の機能を確かめる（新しい作業より先に）。壊れていたら <code>passes: false</code> に戻して直す</li>
+<li><code>passes: false</code> のうち一番上の機能を <b>1つだけ</b> 選ぶ</li>
+<li>実装して、<code>steps</code> のとおりに確かめる</li>
+<li>確かめられたときだけ <code>passes: true</code> にする（ほかのフィールドは変えない）</li>
+<li>説明つきでコミットし、進捗ファイルに追記する</li>
+</ol>
+
+<h2><code>claude -p</code> のオプション</h2>
+<div class="table-wrap">
+<table>
+<tr><th>オプション</th><th>用途</th></tr>
+<tr><td><code>-p "…"</code></td><td>対話なしで1回実行して終わる（呼ぶたびに新しいセッション）</td></tr>
+<tr><td><code>--output-format json</code></td><td><code>result</code>・<code>session_id</code>・<code>total_cost_usd</code> を返す</td></tr>
+<tr><td><code>--max-budget-usd N</code></td><td>1回の実行の費用の上限</td></tr>
+<tr><td><code>--permission-mode auto</code></td><td>分類器が操作を1つずつ審査する</td></tr>
+<tr><td><code>--permission-prompts none</code></td><td>許可の確認を待たずに断り、先へ進む（無人実行向け。v2.1.259 以降）</td></tr>
+<tr><td><code>--allowedTools "…"</code></td><td>確認なしで使えるツールを列挙する</td></tr>
+<tr><td><code>--bare</code></td><td>手元の hooks・skills・CLAUDE.md を読み込まない（CI 向け。API キーが必要）</td></tr>
+</table>
+</div>
+<p class="src">出典：<a href="https://code.claude.com/docs/en/headless">Claude Code Docs: Run Claude Code programmatically</a> ／ <a href="https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding">claude-quickstarts/autonomous-coding</a> ／ レッスン <a href="../lessons/0002-unattended-loop.html">0002</a></p>
+</main>
+</body>
+</html>

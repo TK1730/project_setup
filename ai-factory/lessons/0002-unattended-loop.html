@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>無人で1機能ずつ回す</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+
+<div class="kicker">LESSON 0002 · AIファクトリー</div>
+<h1>無人で1機能ずつ回す</h1>
+<p class="lede">ファクトリーの心臓は、30行ほどのループだ。難しいのは回すことより、<b>正しく止める</b> ことのほうにある。</p>
+
+<div class="box goal">
+<code>claude -p</code> を毎回新しいセッションで呼ぶループを自分のマシンで1回動かす。そして、そのループを守る <b>4つのガード</b> が、それぞれどの失敗を止めるのかを言えるようになる。
+</div>
+
+<h2>0. 前回の復習（見ないで答える）</h2>
+<p>時間を空けて思い出すと、記憶に定着する。</p>
+<p class="quiz-score"></p>
+
+<div class="quiz" data-answer="3" data-explain="前のセッションが何かを壊しているかもしれないので、新しい機能に手をつける前に、中心的な機能がまだ動くかを確かめる。Anthropic のプロンプトでは「MANDATORY BEFORE NEW WORK」とされている。">
+  <div class="q">R1. コーディングエージェントがセッションの始めに、新しい機能より先にやることは？</div>
+  <div class="opts"><button class="opt">機能一覧の優先度を並べ替える</button><button class="opt">依存パッケージを更新しておく</button><button class="opt">前回のブランチを削除しておく</button><button class="opt">既存の機能が動くかを確かめる</button></div>
+</div>
+
+<div class="quiz" data-answer="2" data-explain="過去のセッションの記録（進捗ファイル、git の履歴、docs）は ④ 記録。ファクトリーは記憶のない作業員が交代していく前提なので、記録がないと次のセッションが状況をつかめない。">
+  <div class="q">R2. 「次のセッションが前の続きから始められるようにする」部品は？</div>
+  <div class="opts"><button class="opt">仕様</button><button class="opt">検品</button><button class="opt">記録</button><button class="opt">実行</button></div>
+</div>
+
+<h2>1. お手本のループを読む</h2>
+<p>Anthropic は、記事の実装を <a href="https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding">claude-quickstarts/autonomous-coding</a> として公開している<sup class="cite"><a href="#s1">[1]</a></sup>。中心にあるのは <code>agent.py</code> のループで、骨組みは次のとおりだ。</p>
+<pre>is_first_run = not feature_list.json が存在する
+while True:
+    if max_iterations に達した: break
+    client = create_client(...)          # ← 毎回新しいコンテキスト
+    prompt = 初期化用 if is_first_run else 続き用
+    is_first_run = False
+    セッションを実行
+    3秒待って次へ</pre>
+<p>見てほしい点は3つある。</p>
+<ol>
+<li><b>セッションごとにクライアントを作り直す。</b> 長い会話を続けるのではなく、毎回まっさらなコンテキストで始める。続きは <code>feature_list.json</code>・<code>claude-progress.txt</code>・git が引き継ぐ<sup class="cite"><a href="#s2">[2]</a></sup>。</li>
+<li><b>どちらのプロンプトを使うかは、機能一覧があるかどうかで決まる。</b> 機能一覧がなければ初期化エージェントになる。初期化エージェントの仕事は、その一覧を作ることだ。</li>
+<li><b>止まる条件は <code>max_iterations</code> だけ。</b> 全機能が通っても、ループは自分では止まらない。デモなら十分だが、自分のファクトリーにするならガードを足す必要がある。</li>
+</ol>
+
+<div class="quiz" data-answer="0" data-explain="Anthropic は、コンテキストを圧縮する仕組み（compaction）だけでは、Opus 4.5 でも大きなアプリを作り切れなかったと報告している。だから、状態をファイルに出して毎回新しいセッションで読み直させる。">
+  <div class="q">Q1. 1つの長い会話ではなく、毎回新しいセッションで始めるのはなぜ？</div>
+  <div class="opts"><button class="opt">圧縮だけでは長い作業が崩れるため</button><button class="opt">料金が会話の長さで急に増えるため</button><button class="opt">並列で複数の機能を同時に作るため</button><button class="opt">モデルの種類を毎回切り替えるため</button></div>
+</div>
+
+<div class="quiz" data-answer="1" data-explain="agent.py は起動したときに feature_list.json があるかを見て、なければ初期化プロンプトを1回だけ使う。">
+  <div class="q">Q2. お手本は、初期化と続きのどちらのプロンプトを使うかを何で決めている？</div>
+  <div class="opts"><button class="opt">ループの何回目の実行にあたるか</button><button class="opt">機能一覧ファイルがあるかどうか</button><button class="opt">コミットが一つ以上あるかどうか</button><button class="opt">前回のセッションが成功したのか</button></div>
+</div>
+
+<h2>2. Claude Code で組み直す：4つのガード</h2>
+<p>お手本は Python の Agent SDK で書かれている。同じことは <code>claude -p</code> でもできる。<code>-p</code> を付けると対話なしで1回実行し、終わればプロセスごと終了する。つまり、呼ぶたびに新しいセッションになる<sup class="cite"><a href="#s3">[3]</a></sup>。スターターキットの <code>factory.sh</code> は、これに次の4つのガードを足している。</p>
+<div class="table-wrap">
+<table>
+<tr><th>ガード</th><th>止める条件</th><th>防ぐ失敗</th></tr>
+<tr><td><b>完了判定</b></td><td><code>passes: false</code> が0件</td><td>全部終わったのに回り続け、お金を使い続ける</td></tr>
+<tr><td><b>回数上限</b></td><td><code>MAX_ITER</code> 回に達した</td><td>終わりのない実行</td></tr>
+<tr><td><b>停滞検知</b></td><td>残り件数が <code>MAX_STALL</code> 回続けて減らない</td><td>同じ失敗を朝まで繰り返す</td></tr>
+<tr><td><b>改竄検知</b></td><td><code>passes</code> 以外のフィールドが変わった</td><td>難しいテストを書き換えて「合格」にする</td></tr>
+</table>
+</div>
+<p>改竄検知は、プロンプトの「書き換えるな」を <b>機械的に強制する</b> ものだ。OpenAI のチームも、アーキテクチャの決まりをレビューに頼らず、linter と構造テストで強制している<sup class="cite"><a href="#s4">[4]</a></sup>。エージェントへのお願いは破られることがある。チェックは破られない。</p>
+<p>それぞれのセッションには <code>--max-budget-usd</code> で費用の上限もかける。<code>--output-format json</code> を付けると、結果に <code>total_cost_usd</code> が入るので、1回ごとの費用をログに残せる<sup class="cite"><a href="#s3">[3]</a></sup>。</p>
+<pre>claude -p "$(cat prompts/coding.md)" \
+  --permission-mode auto --permission-prompts none \
+  --max-budget-usd "$SESSION_BUDGET" \
+  --output-format json &gt; ".factory/session-$i.json"</pre>
+<p><code>--permission-prompts none</code> を付けると、誰も答えられない許可の確認で待ち続けず、その操作を断って先へ進む。無人で動かすときのためのオプションだ<sup class="cite"><a href="#s3">[3]</a></sup>。</p>
+
+<h3>練習：どのガードが止める？</h3>
+<div class="quiz" data-answer="3" data-explain="steps が変わると、passes を除いたハッシュが変わる。改竄検知はそれを見つけて、すぐにループを止める。">
+  <div class="q">Q3. エージェントが難しい機能の <code>steps</code> を簡単なものに書き換え、<code>passes: true</code> にした。</div>
+  <div class="opts"><button class="opt">完了判定</button><button class="opt">回数上限</button><button class="opt">停滞検知</button><button class="opt">改竄検知</button></div>
+</div>
+
+<div class="quiz" data-answer="2" data-explain="残り件数が減らない状態が MAX_STALL 回続いたら止める。回数上限でもいずれは止まるが、それまでの回数分のお金と時間を無駄にする。">
+  <div class="q">Q4. 毎回同じエラーで失敗して、残り件数が減らないまま朝になっていた。</div>
+  <div class="opts"><button class="opt">完了判定</button><button class="opt">回数上限</button><button class="opt">停滞検知</button><button class="opt">改竄検知</button></div>
+</div>
+
+<div class="quiz" data-answer="1" data-explain="お手本の while True に足りないのがこれ。各セッションの前に残り件数を数え、0件なら止める。">
+  <div class="q">Q5. 全機能が通ったのに、ループが回り続けてトークンを使い続けた。</div>
+  <div class="opts"><button class="opt">回数上限</button><button class="opt">完了判定</button><button class="opt">停滞検知</button><button class="opt">改竄検知</button></div>
+</div>
+
+<div class="quiz" data-answer="0" data-explain="1回のセッション内の暴走は、ループのガードでは止められない。ループが判定できるのはセッションが終わってからだからだ。セッションの中の費用は、claude -p の --max-budget-usd で抑える。">
+  <div class="q">Q6. 1回のセッションの中でエージェントが同じことを延々と試し、それだけで想定の10倍の費用がかかった。</div>
+  <div class="opts"><button class="opt">予算上限</button><button class="opt">完了判定</button><button class="opt">停滞検知</button><button class="opt">改竄検知</button></div>
+</div>
+
+<h2>3. 実際に1回まわす</h2>
+<p>スターターキットは <a href="../starter/"><code>ai-factory/starter/</code></a> にある。小さな TODO 用 CLI の機能が4つ、機能一覧に入っている。今回は <b>人間が機能一覧を書いた</b> ので、初期化エージェントは使わない（機能一覧があれば続きのプロンプトから始まる。Q2 と同じ理屈だ）。<b>このリポジトリの中では動かさず</b>、使い捨てのフォルダで試す。</p>
+<pre>mkdir -p ~/workspace/factory-sandbox &amp;&amp; cd ~/workspace/factory-sandbox
+git init
+cp -r ~/workspace/project_setup/ai-factory/starter/. .
+git add . &amp;&amp; git commit -m "仕様と工場を置く"
+MAX_ITER=1 ./factory.sh</pre>
+<p>終わったら、次の3つを確かめる。これがあなたの最初の「検品」になる。</p>
+<ol>
+<li><code>git log --oneline</code>：エージェントが説明つきのコミットを残したか</li>
+<li><code>cat claude-progress.txt</code>：次のセッションへの引き継ぎが書かれているか</li>
+<li><code>feature_list.json</code> で <code>true</code> になった機能の <code>steps</code> を <b>自分で実行</b> し、本当に <code>expected</code> のとおりになるか</li>
+</ol>
+<p>うまくいったら <code>MAX_ITER=5 ./factory.sh</code> で最後まで回してみる。かかった費用は <code>.factory/session-*.json</code> に残る。</p>
+<textarea class="scratch" placeholder="気づいたこと：何回で終わった？ 費用は？ エージェントの判断で気になったところは？"></textarea>
+
+<details class="recall">
+<summary>動かす前に予想してみる：このキットの一番弱いところはどこ？</summary>
+<p><b>検品を、エージェント自身の自己申告に頼っている</b> ところだ。<code>passes: true</code> にするのはエージェント本人で、ループが確かめているのは「機能一覧の数字が減ったか」だけ。<code>steps</code> を実行して <code>expected</code> と照らし合わせる仕組みは、ループの側にはない。StrongDM がシナリオをエージェントから隠すのも、この問題があるからだ（レッスン 0001 の Q6）。次のレッスンでは、この検品を機械にやらせる。</p>
+</details>
+
+<div class="box">
+<b>一次資料を読む：</b> <a href="https://github.com/anthropics/claude-quickstarts/blob/main/autonomous-coding/prompts/coding_prompt.md"><code>prompts/coding_prompt.md</code></a>（Anthropic）。スターターキットの <code>prompts/coding.md</code> は、これを短くして日本語にしたものだ。原文の「STEP 3: VERIFICATION TEST」と「STEP 7」が、どれだけ強い言葉で書かれているかを見てほしい。
+</div>
+
+<div class="box ask">
+わからないところは Claude に聞いてほしい。たとえば「<code>--permission-mode auto</code> は何を許して、何を止める？」「停滞検知の <code>MAX_STALL</code> はいくつが妥当？」「実行してみたらこうなった。どう読めばいい？」など。実行ログをそのまま貼ってもらえれば一緒に読む。
+</div>
+
+<p>早見表：<a href="../reference/factory-loop.html">ファクトリーのループ</a> ／ <a href="../reference/glossary.html">用語集</a></p>
+
+<nav class="lesson-nav"><a href="0001-factory-four-parts.html">← 0001 工場の4つの部品</a><span>次：0003 検品を機械にやらせる（準備中）</span></nav>
+
+<hr>
+<div class="src">
+<b>出典</b>
+<ol>
+<li id="s1"><a href="https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding">anthropics/claude-quickstarts: autonomous-coding</a>（<code>agent.py</code>、<code>prompts/</code>）</li>
+<li id="s2"><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic, "Effective harnesses for long-running agents" (2025-11-26)</a></li>
+<li id="s3"><a href="https://code.claude.com/docs/en/headless">Claude Code Docs: Run Claude Code programmatically</a></li>
+<li id="s4"><a href="https://www.infoq.com/news/2026/02/openai-harness-engineering-codex">InfoQ: OpenAI harness engineering（OpenAI の記事の要約）</a></li>
+</ol>
+</div>
+
+</main>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

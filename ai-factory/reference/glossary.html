@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIファクトリー用語集</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  dl { margin: 0; }
+  dt { font-family: "Noto Sans JP", sans-serif; font-weight: 600; margin-top: 1.1em; }
+  dt .tag { font-weight: 400; font-size: .75rem; padding: 0 .4em; border: 1px solid; margin-left: .4em; border-radius: 2px; }
+  dd { margin: .1em 0 0 0; font-size: .95rem; line-height: 1.7; }
+  .t1 { color: var(--p1); } .t2 { color: var(--p2); } .t3 { color: var(--p3); } .t4 { color: var(--p4); }
+</style>
+</head>
+<body>
+<main>
+<div class="kicker">REFERENCE · AIファクトリー</div>
+<h1>用語集</h1>
+<p class="lede">このコースのレッスンは、ここの用語で統一する。タグはファクトリーの4つの部品（<span class="t1">仕様</span>・<span class="t2">実行</span>・<span class="t3">検品</span>・<span class="t4">記録</span>）を表す。</p>
+
+<h2>全体</h2>
+<dl>
+<dt>AIファクトリー（ソフトウェアファクトリー）</dt>
+<dd>仕様を入力すると、エージェントが実装・テスト・記録までを無人で進める開発の仕組み。このコースでは「AIエージェントの開発工場」の意味で使い、NVIDIA の GPU インフラの意味では使わない。</dd>
+<dt>ハーネス</dt>
+<dd>モデルの周りに置く環境の全体。プロンプト、ツール、スクリプト、状態ファイル、テスト、制約などを含む。ファクトリーの性能はモデルだけでなく、ハーネスでも大きく変わる。<a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">[Anthropic]</a></dd>
+<dt>Shapiro のレベル（0〜5）</dt>
+<dd>AI を使った開発の段階。3＝人間が diff をレビューする／4＝仕様を書き、長時間走らせ、テストで確かめる／5＝ダークファクトリー。<a href="https://www.danshapiro.com/blog/2026/01/the-five-levels-from-spicy-autocomplete-to-the-software-factory/">[Shapiro]</a></dd>
+<dt>ダークファクトリー</dt>
+<dd>レベル5。人間がコードを書かず、レビューもしない。製造業の「無人で消灯したまま動く工場」から来た言葉。StrongDM が実践している。<a href="https://simonwillison.net/2026/Feb/7/software-factory/">[Willison]</a></dd>
+</dl>
+
+<h2>部品</h2>
+<dl>
+<dt>機能一覧（feature list）<span class="tag t1">仕様</span></dt>
+<dd>作るべき機能を並べた JSON。全項目を <code>passes: false</code> から始め、エージェントは <code>passes</code> だけを変えてよい。モデルが Markdown より書き換えにくいので JSON にする。</dd>
+<dt>初期化エージェント<span class="tag t2">実行</span></dt>
+<dd>最初のセッションで1回だけ動き、機能一覧・<code>init.sh</code>・進捗ファイル・最初のコミットを用意する。</dd>
+<dt>コーディングエージェント<span class="tag t2">実行</span></dt>
+<dd>2回目以降の各セッションで動き、1機能ずつ進め、終わるときに記録を残す。初期化エージェントとは、最初のユーザープロンプトだけが違う。</dd>
+<dt><code>init.sh</code><span class="tag t2">実行</span></dt>
+<dd>開発サーバーなどを起動するスクリプト。エージェントが毎回起動方法を調べ直さずに済む。</dd>
+<dt>ヘッドレス実行（<code>claude -p</code>）<span class="tag t2">実行</span></dt>
+<dd>Claude Code を対話なしで動かす。<code>--output-format json</code>（結果とコストを返す）、<code>--permission-mode</code>、<code>--permission-prompts none</code>（無人実行）、<code>--max-budget-usd</code>、<code>--bare</code>（環境ごとの設定を読み込まない）。<a href="https://code.claude.com/docs/en/headless">[Docs]</a></dd>
+<dt>git worktree<span class="tag t2">実行</span></dt>
+<dd>1つのリポジトリから作業フォルダを複数作る機能。エージェントを並列に動かしても、互いの作業がぶつからない。</dd>
+<dt>ガード<span class="tag t2">実行</span></dt>
+<dd>無人ループを止める条件。完了判定（残り0件）、回数上限、停滞検知（残り件数が減らない）、改竄検知（<code>passes</code> 以外が変わった）、予算上限（<code>--max-budget-usd</code>）。<a href="factory-loop.html">[早見表]</a></dd>
+<dt>機械的な強制<span class="tag t3">検品</span></dt>
+<dd>プロンプトでお願いするのではなく、スクリプト・linter・CI で決まりを守らせること。例：機能一覧の改竄検知。</dd>
+<dt>E2E 検証<span class="tag t3">検品</span></dt>
+<dd>人間のユーザーと同じ操作で確かめる（ブラウザ自動化など）。Anthropic は、単体テストや <code>curl</code> だけでは見落としが多かったと報告している。</dd>
+<dt>シナリオ（ホールドアウト）<span class="tag t3">検品</span></dt>
+<dd>コードベースの外に置き、エージェントに見せない E2E のユーザーストーリー。エージェントがテストをズルして通すのを防ぐ。</dd>
+<dt>satisfaction<span class="tag t3">検品</span></dt>
+<dd>StrongDM の指標。全シナリオを何度も実行し、ユーザーを満足させたと思われる実行の割合を出す。「テストが緑かどうか」の二択の代わりに使う。</dd>
+<dt>Digital Twin Universe（DTU）<span class="tag t3">検品</span></dt>
+<dd>外部サービス（Okta、Slack など）の動きを再現したクローン。レート制限やコストなしで、大量のシナリオを実行できる。</dd>
+<dt>進捗ファイル（progress file）<span class="tag t4">記録</span></dt>
+<dd>各セッションが何をしたかを書く作業ログ（例：<code>claude-progress.txt</code>）。新しいセッションは、まずこれと <code>git log</code> を読む。</dd>
+<dt>docs を正とする（system of record）<span class="tag t4">記録</span></dt>
+<dd>リポジトリ内の docs を、エージェントにとっての唯一の正しい情報源にする。docs の整合性は linter と CI で強制する。<a href="https://www.infoq.com/news/2026/02/openai-harness-engineering-codex">[OpenAI/InfoQ]</a></dd>
+</dl>
+
+<p class="src">新しい用語が出てきたら、レッスンごとにここへ追記する。<a href="../lessons/0001-factory-four-parts.html">レッスン 0001</a> ／ <a href="../lessons/0002-unattended-loop.html">0002</a></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工場の4つの部品</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+
+<div class="kicker">LESSON 0001 · AIファクトリー</div>
+<h1>工場の4つの部品</h1>
+<p class="lede">AIファクトリーは「賢いエージェント」ではなく「エージェントを取り囲む仕組み」でできている。まず、その仕組みを4つの部品に分けて見えるようにする。</p>
+
+<div class="box goal">
+どんなファクトリーの記事やツールを見ても、それが <b>仕様・実行・検品・記録</b> のどの部品の話なのかを分類できる。さらに、自分の <code>scripts/harness/</code> がどの部品をすでに持っているかを言える。
+</div>
+
+<h2>1. 今どこにいて、どこへ向かうのか</h2>
+<p>Dan Shapiro は、AI を使った開発をレベル0〜5に分けた<sup class="cite"><a href="#s1">[1]</a></sup>。上のレベルほど、人間はコードから離れる。</p>
+<div class="table-wrap">
+<table>
+<tr><th>Lv</th><th>状態</th><th>人間の役割</th></tr>
+<tr><td>2</td><td>AI と組んで、フローに入って書く</td><td>まだ自分が運転している</td></tr>
+<tr class="you"><td>3</td><td>複数のエージェントが書き、人間は diff を読む</td><td>マネージャー兼レビュアー</td></tr>
+<tr class="you"><td>4</td><td>仕様を書いて数時間走らせ、テストが通ったか確認する</td><td>仕様を書き、結果を検証する PM</td></tr>
+<tr><td>5</td><td>ダークファクトリー：仕様がソフトウェアになるブラックボックス</td><td>工程に人間はいない</td></tr>
+</table>
+</div>
+<p>あなたは今 2〜3 にいる。このコースの目標は <b>レベル4の個人ファクトリー</b> だ。StrongDM はレベル5を実践しているが<sup class="cite"><a href="#s2">[2]</a></sup>、トークン代は「エンジニア1人1日 $1,000 以上」が目安だという<sup class="cite"><a href="#s2">[2]</a></sup>。個人開発の予算では、目標は4で十分だ。</p>
+
+<h2>2. ファクトリー ＝ モデル ＋ ハーネス</h2>
+<p>OpenAI の Codex チームは、手で書いたコードなしでプロダクトを作った。そのとき人間の仕事は、コードを書くことから <b>「環境を設計し、意図を伝え、フィードバックの仕組みを作る」</b> ことに変わったという<sup class="cite"><a href="#s3">[3]</a></sup>。モデルの周りにあるこの環境を <b>ハーネス</b> と呼ぶ。</p>
+<p>Anthropic は、何時間も動くエージェントの根本的な問題を一文で書いている。エージェントは別々のセッションで動き、<b>「新しいセッションは、前に何があったかの記憶なしで始まる」</b><sup class="cite"><a href="#s4">[4]</a></sup>。だからファクトリーは、記憶のない作業員が交代しても仕事が進むように設計しなければならない。そのために次の4つの部品が要る。</p>
+
+<div class="parts">
+  <div class="part p1"><b>① 仕様</b>何を作るか、そして「完了」とは何か。例：機能一覧の JSON。全項目を「未達成」から始める。</div>
+  <div class="part p2"><b>② 実行</b>人間なしでエージェントを動かすライン。例：<code>claude -p</code>、worktree で並列化、初期化エージェントとコーディングエージェント。</div>
+  <div class="part p3"><b>③ 検品</b>エージェントの「できました」を信じてよいか確かめる。例：E2E テスト、エージェントに見せないシナリオ。</div>
+  <div class="part p4"><b>④ 記録</b>次のセッションが前の続きから始められるようにする。例：進捗ファイル、説明つきの git コミット、docs。</div>
+</div>
+
+<h3>なぜ4つとも必要か：Anthropic が見た失敗</h3>
+<p>Anthropic の実験では、部品が欠けるたびに決まった失敗が起きた<sup class="cite"><a href="#s4">[4]</a></sup>。</p>
+<div class="table-wrap">
+<table>
+<tr><th>起きた失敗</th><th>欠けていた部品</th></tr>
+<tr><td>一気に全部作ろうとして、途中でコンテキストが尽きる</td><td>① 仕様（1機能ずつに分けていない）</td></tr>
+<tr><td>後のエージェントが進捗を見て「もう完成」と宣言する</td><td>① 仕様（「完了」の定義がない）</td></tr>
+<tr><td>テストせずに機能を完了にする</td><td>③ 検品</td></tr>
+<tr><td>作りかけの機能が説明なしで残る</td><td>④ 記録</td></tr>
+<tr><td>アプリの起動方法を毎回調べ直して時間を無駄にする</td><td>② 実行（<code>init.sh</code> がない）</td></tr>
+</table>
+</div>
+<p>検品はいちばん難しい部品だ。StrongDM は、エージェントがテストを「ズルして」通すことを防ぐために、E2E のユーザーストーリー（<b>シナリオ</b>）を <b>コードベースの外</b> に置く。機械学習の「ホールドアウト」データと同じ考え方だ<sup class="cite"><a href="#s2">[2]</a></sup>。Simon Willison は、人間が全行を読まずにコードが動くことをエージェントに証明させる方法を、今のソフトウェア開発で最も重要な未解決問題の一つだと書いている<sup class="cite"><a href="#s2">[2]</a></sup>。</p>
+
+<h2>3. 練習：部品を分類する</h2>
+<p>答える前に、上の4つのカードを見ないで思い出してみる。そのほうが記憶に残る。</p>
+<p class="quiz-score"></p>
+
+<div class="quiz" data-answer="0" data-explain="これは「何を作るか」と「どこまでやれば完了か」を決めるもので、仕様にあたる。Anthropic の例では200以上の機能を並べ、すべて「未達成」から始めた。">
+  <div class="q">Q1. ユーザーの一文の依頼を、200以上の機能に展開した <code>feature_list.json</code></div>
+  <div class="opts"><button class="opt">仕様</button><button class="opt">実行</button><button class="opt">検品</button><button class="opt">記録</button></div>
+</div>
+
+<div class="quiz" data-answer="3" data-explain="各セッションが何をしたかを書き残し、次のエージェントがすぐ状況をつかめるようにするもの。記録にあたる。">
+  <div class="q">Q2. <code>claude-progress.txt</code>（各セッションの作業ログ）</div>
+  <div class="opts"><button class="opt">仕様</button><button class="opt">実行</button><button class="opt">検品</button><button class="opt">記録</button></div>
+</div>
+
+<div class="quiz" data-answer="1" data-explain="人間が対話しないでエージェントを動かす仕組みなので、実行のラインにあたる。worktree を分けると、並列に動かしても互いの作業がぶつからない。">
+  <div class="q">Q3. git worktree を3つ作り、それぞれで <code>claude -p "…" --permission-mode auto</code> を起動するスクリプト</div>
+  <div class="opts"><button class="opt">仕様</button><button class="opt">実行</button><button class="opt">検品</button><button class="opt">記録</button></div>
+</div>
+
+<div class="quiz" data-answer="2" data-explain="あなたの probe.sh は、同じ依頼を変更前と変更後のハーネスで動かして結果を並べる。これは「ハーネスを変えて良くなったか」を確かめる検品だ。worktree と claude -p（実行の部品）を、検品のために使っている。">
+  <div class="q">Q4. あなたの <code>scripts/harness/probe.sh</code>（同じ依頼を変更前と変更後のハーネスで実行して比べる）</div>
+  <div class="opts"><button class="opt">仕様</button><button class="opt">実行</button><button class="opt">検品</button><button class="opt">記録</button></div>
+</div>
+
+<div class="quiz" data-answer="2" data-explain="Anthropic によると、JSON にしたのはモデルが Markdown より不適切に書き換えにくいからだ。エージェントに変えてよいのは passes フィールドだけで、テスト項目を消したり書き換えたりすることは許さない。">
+  <div class="q">Q5. Anthropic が機能一覧を Markdown ではなく JSON で書いた理由は？</div>
+  <div class="opts"><button class="opt">人間が読みやすく編集しやすいから</button><button class="opt">パースが速くトークンが少ないから</button><button class="opt">モデルが勝手に書き換えにくいから</button><button class="opt">Gitの差分が小さく見やすいから</button></div>
+</div>
+
+<div class="quiz" data-answer="1" data-explain="シナリオをエージェントから見えない場所に置くと、テストに合わせてズルをする余地がなくなる。機械学習のホールドアウトと同じ考え方だ。">
+  <div class="q">Q6. StrongDM がシナリオをコードベースの外に置く理由は？</div>
+  <div class="opts"><button class="opt">リポジトリの容量を小さく抑えるため</button><button class="opt">エージェントの不正な合格を防ぐため</button><button class="opt">人間のレビュー時間を短縮させるため</button><button class="opt">テスト実行のコストを削減させるため</button></div>
+</div>
+
+<div class="quiz" data-answer="2" data-explain="仕様を書いて長時間走らせ、テスト結果で確かめるのはレベル4（Shapiro の「Robotaxi」）。このコースの目標地点だ。">
+  <div class="q">Q7. 「朝に仕様を書いて夜まで走らせ、帰ってきたらテストが通ったかだけ確認する」。これは Shapiro のどのレベル？</div>
+  <div class="opts"><button class="opt">レベル2</button><button class="opt">レベル3</button><button class="opt">レベル4</button><button class="opt">レベル5</button></div>
+</div>
+
+<h2>4. 自分のリポジトリに当てはめる</h2>
+<p>この演習は答えを確かめず、自分の言葉で書く。<code>scripts/harness/</code> の3つのスクリプト（<code>probe.sh</code>・<code>docs_check.py</code>・<code>clarify_report.py</code>）と <code>docs/AGENTS.md</code> を、4つの部品に振り分けてみる。<b>まだ何もない部品</b> はどれか。</p>
+<textarea class="scratch" placeholder="① 仕様：&#10;② 実行：&#10;③ 検品：&#10;④ 記録：&#10;まだない部品："></textarea>
+<details class="recall">
+<summary>書いたら開く：先生からの見立て</summary>
+<p><code>probe.sh</code> は ③ 検品（ハーネスの変更を検証する）。<code>docs_check.py</code> は docs を機械的にチェックするので ④ 記録の品質を保つ部品だ。OpenAI も、docs のリンクや整合性を linter と CI で強制している<sup class="cite"><a href="#s3">[3]</a></sup>。<code>docs/AGENTS.md</code> はエージェントへの地図で、④ 記録の一部。</p>
+<p>いちばん手薄なのは、おそらく <b>① 仕様</b>（機能一覧と「完了」の定義）と <b>② 実行</b>（1機能ずつ無人で回すループ）だ。次のレッスンでは、ここを作る。違う考えなら、ぜひ教えてほしい。</p>
+</details>
+
+<h2>5. 閉じる前に</h2>
+<details class="recall">
+<summary>何も見ずに：4つの部品と、それぞれが防ぐ失敗を1つずつ言えるか？</summary>
+<p>① 仕様：一気に作ろうとする失敗、早すぎる「完成」宣言 ／ ② 実行：起動方法を毎回調べ直す、人間が張り付く必要がある ／ ③ 検品：テストなしで完了にする、テストをズルして通す ／ ④ 記録：作りかけのまま説明なしで終わる、次のセッションが状況をつかめない</p>
+</details>
+
+<div class="box">
+<b>一次資料を読む：</b> <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic「Effective harnesses for long-running agents」</a>。このレッスンの ①②④ のほとんどはこの記事から来ている。15分ほどで読める。読んだら、初期化エージェントとコーディングエージェントの違いを説明できるか試してみる。
+</div>
+
+<div class="box ask">
+わからないところ、納得できないところは、そのまま Claude に質問してほしい。たとえば「feature list の passes を、エージェント自身が true にしてよいのはなぜ？」「自分のリポジトリだと、どこに仕様を置くべき？」など。先生役はこのセッションの Claude だ。
+</div>
+
+<p>用語は <a href="../reference/glossary.html">用語集</a> にまとめてある。</p>
+
+<nav class="lesson-nav"><span></span><a href="0002-unattended-loop.html">次：0002 無人で1機能ずつ回す →</a></nav>
+
+<hr>
+<div class="src">
+<b>出典</b>
+<ol>
+<li id="s1"><a href="https://www.danshapiro.com/blog/2026/01/the-five-levels-from-spicy-autocomplete-to-the-software-factory/">Dan Shapiro, "The Five Levels: from Spicy Autocomplete to the Software Factory" (2026-01-23)</a></li>
+<li id="s2"><a href="https://simonwillison.net/2026/Feb/7/software-factory/">Simon Willison, "How StrongDM's AI team build serious software without even looking at the code" (2026-02-07)</a></li>
+<li id="s3"><a href="https://openai.com/index/harness-engineering">OpenAI, "Harness engineering: leveraging Codex in an agent-first world" (2026-02-11)</a>（要約：<a href="https://www.infoq.com/news/2026/02/openai-harness-engineering-codex">InfoQ</a>）</li>
+<li id="s4"><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic, "Effective harnesses for long-running agents" (Justin Young, 2025-11-26)</a></li>
+</ol>
+</div>
+
+</main>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

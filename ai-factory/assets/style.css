@@ -1,0 +1,100 @@
+/* AIファクトリー講座 共通スタイル — Tufte 風、印刷対応 */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@400;600&family=JetBrains+Mono:wght@400&display=swap");
+
+:root {
+  --bg: #fffff8;
+  --fg: #1d1d1b;
+  --muted: #6b6a63;
+  --rule: #d9d6c8;
+  --accent: #a3361f;
+  --accent-soft: #f6e9e2;
+  --ok: #2f6b3a;
+  --ok-soft: #e4f0e2;
+  --ng: #9a2a2a;
+  --ng-soft: #f6e0e0;
+  --code-bg: #f2f0e6;
+  --p1: #3b6ea5; /* 仕様 */
+  --p2: #a3361f; /* 実行 */
+  --p3: #2f6b3a; /* 検品 */
+  --p4: #7a5a1e; /* 記録 */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1a17; --fg: #e8e5da; --muted: #a29f93; --rule: #3a3832;
+    --accent: #e08a6d; --accent-soft: #3a2a24; --ok: #8fc79a; --ok-soft: #22322a;
+    --ng: #e59a9a; --ng-soft: #3a2424; --code-bg: #26251f;
+    --p1: #8fb3dd; --p2: #e08a6d; --p3: #8fc79a; --p4: #d6b56f;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: "Noto Serif JP", serif; font-size: 17px; line-height: 1.85;
+}
+main { max-width: 760px; margin: 0 auto; padding: 48px 16px 96px; }
+h1, h2, h3 { font-weight: 700; line-height: 1.4; }
+h1 { font-size: 1.9rem; margin: 0 0 .3em; }
+h2 { font-size: 1.3rem; margin: 2.4em 0 .6em; border-bottom: 1px solid var(--rule); padding-bottom: .2em; }
+h3 { font-size: 1.05rem; margin: 1.6em 0 .4em; }
+.kicker { font-family: "Noto Sans JP", sans-serif; color: var(--accent); font-size: .8rem; letter-spacing: .12em; }
+.lede { color: var(--muted); font-size: 1.05rem; }
+a { color: var(--accent); text-underline-offset: 3px; }
+code, pre { font-family: "JetBrains Mono", monospace; font-size: .86em; background: var(--code-bg); border-radius: 3px; }
+code { padding: .1em .35em; }
+pre { padding: 12px 14px; overflow-x: auto; line-height: 1.6; }
+sup.cite a { text-decoration: none; font-family: "Noto Sans JP", sans-serif; font-size: .72em; }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5em 0; }
+
+.box { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; margin: 1.4em 0; }
+.box.goal::before { content: "このレッスンのゴール"; display: block; font-family: "Noto Sans JP", sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); }
+.box.ask { border-color: var(--muted); background: transparent; border: 1px dashed var(--rule); }
+
+/* 4つの部品 */
+.parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 1.2em 0; }
+.part { border: 1px solid var(--rule); border-top: 4px solid; padding: 10px 12px; font-size: .92rem; line-height: 1.6; }
+.part b { display: block; font-family: "Noto Sans JP", sans-serif; }
+.part.p1 { border-top-color: var(--p1); } .part.p1 b { color: var(--p1); }
+.part.p2 { border-top-color: var(--p2); } .part.p2 b { color: var(--p2); }
+.part.p3 { border-top-color: var(--p3); } .part.p3 b { color: var(--p3); }
+.part.p4 { border-top-color: var(--p4); } .part.p4 b { color: var(--p4); }
+
+table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1em 0; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: "Noto Sans JP", sans-serif; font-weight: 600; font-size: .85rem; color: var(--muted); }
+tr.you td { background: var(--accent-soft); }
+.table-wrap { overflow-x: auto; }
+
+/* クイズ（assets/quiz.js） */
+.quiz { border: 1px solid var(--rule); padding: 14px 16px; margin: 1.2em 0; }
+.quiz .q { font-weight: 600; margin-bottom: .5em; }
+.quiz .opts { display: grid; gap: 6px; }
+.quiz button.opt {
+  font: inherit; font-size: .95rem; text-align: left; cursor: pointer;
+  background: transparent; color: var(--fg); border: 1px solid var(--rule); padding: 6px 10px; border-radius: 3px;
+}
+.quiz button.opt:hover:not(:disabled) { border-color: var(--accent); }
+.quiz button.opt.correct { background: var(--ok-soft); border-color: var(--ok); }
+.quiz button.opt.wrong { background: var(--ng-soft); border-color: var(--ng); }
+.quiz button.opt:disabled { cursor: default; }
+.quiz .fb { margin-top: .6em; font-size: .92rem; display: none; }
+.quiz .fb.show { display: block; }
+.quiz .fb .verdict { font-family: "Noto Sans JP", sans-serif; font-weight: 600; }
+.quiz-score { font-family: "Noto Sans JP", sans-serif; color: var(--muted); font-size: .9rem; }
+
+details.recall { border: 1px solid var(--rule); padding: 10px 14px; margin: 1em 0; }
+details.recall summary { cursor: pointer; font-family: "Noto Sans JP", sans-serif; font-weight: 600; }
+textarea.scratch { width: 100%; min-height: 90px; font: inherit; font-size: .92rem; background: transparent; color: var(--fg); border: 1px solid var(--rule); padding: 8px; }
+
+nav.lesson-nav { display: flex; justify-content: space-between; gap: 12px; font-family: "Noto Sans JP", sans-serif; font-size: .9rem; margin-top: 3em; }
+.src { font-size: .85rem; color: var(--muted); }
+.src ol { padding-left: 1.4em; }
+
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .quiz .fb { display: block; }
+  details.recall { display: block; }
+  details.recall > *:not(summary) { display: block; }
+  nav.lesson-nav, textarea.scratch { display: none; }
+  a { color: inherit; }
+}
