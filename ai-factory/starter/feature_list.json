@@ -1,0 +1,26 @@
+[
+  {
+    "description": "add で TODO を追加できる",
+    "steps": ["rm -f todo.json", "python3 todo.py add 牛乳を買う"],
+    "expected": "終了コード 0 で「追加: 1 牛乳を買う」と表示される",
+    "passes": false
+  },
+  {
+    "description": "list で TODO の一覧を表示できる",
+    "steps": ["rm -f todo.json", "python3 todo.py add 牛乳を買う", "python3 todo.py list"],
+    "expected": "list の出力が「1 [ ] 牛乳を買う」の 1 行である",
+    "passes": false
+  },
+  {
+    "description": "done で TODO を完了にできる",
+    "steps": ["rm -f todo.json", "python3 todo.py add 牛乳を買う", "python3 todo.py done 1", "python3 todo.py list"],
+    "expected": "list の出力が「1 [x] 牛乳を買う」の 1 行である",
+    "passes": false
+  },
+  {
+    "description": "存在しない番号を done するとエラーになる",
+    "steps": ["rm -f todo.json", "python3 todo.py done 99; echo \"exit=$?\""],
+    "expected": "標準エラーに「番号 99 の TODO はない」と出て、exit=1 と表示される",
+    "passes": false
+  }
+]
