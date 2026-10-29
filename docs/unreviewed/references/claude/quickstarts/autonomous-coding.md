@@ -69,6 +69,7 @@ Claude Agent SDK を使い、記憶を持たないセッションを何度もつ
 ### コーディングエージェントの仕事
 
 `coding_prompt.md` は、毎セッションの手順を 10 段階で決めている。
+詳しくは [autonomous-coding のコーディング用プロンプト](autonomous-coding-coding-prompt.md) にまとめている。
 
 1. 状況をつかむ。`pwd`、`ls`、`app_spec.txt`、`feature_list.json`、`claude-progress.txt`、`git log` を読み、未完了のテストを数える。
 1. `init.sh` でサーバーを起動する。
@@ -158,4 +159,5 @@ React と Vite、Tailwind CSS のフロントエンドに、Node.js と Express�
 ## See also
 
 - [autonomous-coding（GitHub）][dir]
+- [autonomous-coding のコーディング用プロンプト](autonomous-coding-coding-prompt.md)
 - [長時間動くエージェントのための効果的なハーネス](/references/claude/engineering/effective-harnesses-for-long-running-agents.md)
